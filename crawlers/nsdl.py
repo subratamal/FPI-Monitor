@@ -15,10 +15,16 @@ class NSDLArchiveParser:
     browser.get('https://www.fpi.nsdl.co.in/web/Reports/Archive.aspx')
     assert 'Archive' in browser.find_element_by_xpath('//*[@id="mainContent"]/div[2]').get_attribute('innerHTML')
 
-    def __init__(self, start_date = arrow.now(), duration_in_days):
+    def __init__(self, start_date=datetime.today(), duration_in_days=0):
+        self.start_date = start_date
         self.duration_in_days = duration_in_days
 
-    def generate_archive_page(self, date):
+    def boot(self):
+        self.date_range_calc()
+        self.process_archive_page()
+
+    def generate_archive_page(self, date=datetime.today().strftime("%d-%b-%Y")):
+        print(date)
 
         try:
             hddn_date_input_selector = '#hdnDate'
@@ -37,7 +43,7 @@ class NSDLArchiveParser:
             assert 'Daily Trends in FPI Investments upto {}'.format(date) in \
                 daily_trends_header.get_attribute('innerHTML')
 
-            NSDLArchiveParser.browser.close()
+            # NSDLArchiveParser.browser.close()
         except ElementNotInteractableException as enie:
             print(enie)
         except ElementNotVisibleException as enve:
@@ -51,19 +57,42 @@ class NSDLArchiveParser:
                 NSDLArchiveParser.UAPE_COUNT_INITIALIZER += 1
                 NSDLArchiveParser.generate_archive_page()
 
-    def date_end_of_month_calc(self):
+    def date_range_calc(self):
 
-        cur_date = datetime.datetime.now().strftime('%d-%b-%Y')
+        self.calc_ranges = [
+            "2017-Oct-13",
+            "2017-Oct-31",
+            "2017-Nov-30",
+            "2017-Dec-31",
+            "2018-Jan-31",
+            "2018-Feb-28",
+            "2018-Mar-12"
+        ]
+
+    def process_archive_page(self):
+
+        for date in self.calc_ranges:
+            self.generate_archive_page(date)
+
+            # sample_json_structure= [{
+            #     "Reporting Date": "04-Dec-2017",
+            #     "Debt/Equity": "Equity",
+            #     "Investment Route": "",
+            #     "Gross Purchases(Rs Crore)": "",
+            #     "Gross Sales(Rs Crore)": "",
+            #     "Net Investment (Rs Crore)": "",
+            #     "Net Investment US($) million": ""
+            # }]
 
 
-nsdlArchiveParser = NSDLArchiveParser()
-nsdlArchiveParser.generate_archive_page()
+
+nsdlArchiveParser = NSDLArchiveParser(duration_in_days=180)
+nsdlArchiveParser.boot()
+# nsdlArchiveParser.process_archive_page()
 
 # print(arrow.get('June was born in May 1980', 'MMM YYYY').format("MMMM-DDDD-dddd-YYYY"))
 #
 
-
-assert diff_month(datetime(2018, 3, 10), datetime(2017, 12, 10))
 
 
 # class NSDLCrawler(scrapy.Spider):
